@@ -1,5 +1,13 @@
 import socket
 
+def handle_client(data: str) -> str:
+    try: 
+        num1, num2 = data.split(',')
+        return str(int(num1) + int(num2))
+    except ValueError as e:
+        return f"Invalid input: {e}"
+
+
 def tcp_server(host: str, port: int):
     try:
         # 1.) create a socket Object
@@ -12,18 +20,22 @@ def tcp_server(host: str, port: int):
         server_socket.bind((host,port))
         # random port number
         # 3.) listen for incoming connections
-        server_socket.listen(5)
+        server_socket.listen(1)
+
+        client_socket, client_address = server_socket.accept()
+        print(f"Connected by {client_address}") 
+        print("Waiting for Client Response...")
         while True:
             # Accept a connection
-            client_socket, client_address = server_socket.accept()
-            print("Connection established!")
-
+            data = client_socket.recv(1024).decode()
+            if not data:
+                break
             # Send a welcome message
-            message = "Hello, client! Welcome to the server."
+            print(f"Received: {data}")
+            message = handle_client(data)
             client_socket.send(message.encode('utf-8'))
-
             # Close the connection
-            client_socket.close()
+        client_socket.close()
     except socket.gaierror as e:
         print(f"Address-related error connecting to server: {e}")
     except socket.error as e:
